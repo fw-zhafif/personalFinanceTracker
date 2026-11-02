@@ -9,19 +9,30 @@ use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $transactions = Transaction::with('category')->latest()->get();
+        #total pendapatan
+        $totalIncome = Transaction::whereHas('category', function ($query) {
+            $query->where('type','income');
+        })->sum('amount');
 
-        return view('transactions.index', compact('transactions'));
+        $totalExpense = Transaction::whereHas('category', function ($query) {
+            $query->where('type','expense');
+        })->sum('amount');
+
+        $balance = $totalIncome - $totalExpense;
+
+        $transactions = Transaction::with('category')->latest()->paginate(10);
+
+        return view('transactions.index', compact(
+            'transactions',
+            'totalIncome',
+            'totalExpense',
+            'balance'
+        ));
     }   
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    
     public function create()
     {
         $categories = Category::all();
