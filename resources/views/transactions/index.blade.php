@@ -35,6 +35,22 @@
                     <td>{{ strtoupper($transaction->category->type) }}</td>
                     <td>Rp {{ number_format($transaction->amount, 0, ',', '.') }}</td>
                     <td>{{ $transaction->description ?? '-' }}</td>
+                    <td>
+                        {{-- Tombol Edit --}}
+                        <a href="{{ route('transactions.edit', $transaction->id) }}">Edit</a>
+
+                        {{-- Form Hapus --}}
+                        <form action="{{ route('transactions.destroy', $transaction->id) }}" 
+                            method="POST" 
+                            style="display: inline;" 
+                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" style="color: red; background: none; border: none; cursor: pointer; text-decoration: underline;">
+                                Hapus
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             @empty
                 <tr>    
