@@ -6,11 +6,14 @@ use App\Models\Transaction;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
     public function index()
     {
+        $userID = Auth::id();
+
         #total pendapatan
         $totalIncome = Transaction::whereHas('category', function ($query) {
             $query->where('type','income');
@@ -22,7 +25,10 @@ class TransactionController extends Controller
 
         $balance = $totalIncome - $totalExpense;
 
-        $transactions = Transaction::with('category')->latest()->paginate(10);
+        $transactions = Transaction::where('user_id', $userID)
+            ->with('category')
+            ->latest()
+            ->paginate(10);
 
         return view('transactions.index', compact(
             'transactions',
@@ -36,7 +42,6 @@ class TransactionController extends Controller
     public function create()
     {
         $categories = Category::all();
-
         return view('transactions.create', compact('categories'));
     }
 
@@ -52,15 +57,7 @@ class TransactionController extends Controller
         'description' => 'nullable|string|max:255',
         ]);
 
-        $user = User::first();
-        if (!$user) {
-            $user = User::create([
-                'name'     => 'Apip',
-                'email'    => 'apip@example.com',
-                'password' => bcrypt('password'),
-            ]);
-        }
-        $validated['user_id'] = $user->id;
+        $validated['user_id'] = Auth::id();
 
         Transaction::create($validated);
 
@@ -81,8 +78,11 @@ class TransactionController extends Controller
      */
     public function edit(Transaction $transaction)
     {
-        $categories = Category::all();
+        if ($transaction->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah transaksi ini.');
+        }
 
+        $categories = Category::all();
         return view('transactions.edit', compact('transaction', 'categories'));
     }
 
@@ -91,6 +91,10 @@ class TransactionController extends Controller
      */
     public function update(Request $request, Transaction $transaction)
     {
+        if ($transaction->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah transaksi ini.');
+        }
+
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount'      => 'required|numeric|min:1',
@@ -108,6 +112,10 @@ class TransactionController extends Controller
      */
     public function destroy(Transaction $transaction)
     {
+        if ($transaction->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus transaksi ini.');
+        }
+        
         $transaction->delete();
 
         return redirect()->route('transactions.index')->with('success','catatan transaksi berhasil dihapus!');

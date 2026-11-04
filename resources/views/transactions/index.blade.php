@@ -27,7 +27,17 @@
     
 </head>
 <body>
-    <h1>Personal Finance Tracker</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Personal Finance Tracker</h1>
+        
+        <div>
+            Halo, <strong>{{ Auth::user()->name }}</strong> | 
+            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                @csrf
+                <button type="submit" style="cursor: pointer;">Logout</button>
+            </form>
+        </div>
+    </div>
 
     {{-- 1. Kartu Ringkasan Keuangan --}}
     <div style="display: flex; gap: 20px; margin-bottom: 20px;">
