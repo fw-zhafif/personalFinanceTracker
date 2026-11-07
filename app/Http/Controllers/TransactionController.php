@@ -10,28 +10,56 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $userID = Auth::id();
 
-        #total pendapatan
-        $totalIncome = Transaction::whereHas('category', function ($query) {
-            $query->where('type','income');
+        // 1. Inisialisasi Query dasar (terkunci per user)
+        $query = Transaction::where('user_id', $userID);
+
+        // 2. Filter Pencarian berdasarkan Deskripsi (Jika diisi)
+        $query->when($request->search, function ($q) use ($request) {
+            $q->where('description', 'like', '%' . $request->search . '%');
+        });
+
+        // 3. Filter berdasarkan Kategori (Jika dipilih)
+        $query->when($request->category_id, function ($q) use ($request) {
+            $q->where('category_id', $request->category_id);
+        });
+
+        // 4. Filter berdasarkan Rentang Tanggal (Jika diisi)
+        $query->when($request->start_date, function ($q) use ($request) {
+            $q->whereDate('date', '>=', $request->start_date);
+        });
+
+        $query->when($request->end_date, function ($q) use ($request) {
+            $q->whereDate('date', '<=', $request->end_date);
+        });
+
+        // 5. Kalkulasi Agregasi Keuangan mengikuti hasil filter (menggunakan clone query)
+        $totalIncome = (clone $query)->whereHas('category', function ($q) {
+            $q->where('type', 'income');
         })->sum('amount');
 
-        $totalExpense = Transaction::whereHas('category', function ($query) {
-            $query->where('type','expense');
+        $totalExpense = (clone $query)->whereHas('category', function ($q) {
+            $q->where('type', 'expense');
         })->sum('amount');
 
         $balance = $totalIncome - $totalExpense;
 
-        $transactions = Transaction::where('user_id', $userID)
+        // 6. Eksekusi Query dengan Pagination & Mempertahankan Query String
+        $transactions = $query
             ->with('category')
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString(); // Memastikan parameter search/filter tidak hilang di halaman 2
+
+        // Mengambil semua kategori untuk dropdown filter
+        $categories = Category::all();
 
         return view('transactions.index', compact(
             'transactions',
+            'categories',
             'totalIncome',
             'totalExpense',
             'balance'

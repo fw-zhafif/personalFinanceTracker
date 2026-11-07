@@ -70,6 +70,43 @@
         </div>
     @endif
 
+    {{-- Form Filter & Search --}}
+    <form action="{{ route('transactions.index') }}" method="GET" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9; border-radius: 5px;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div>
+                <label for="search">Cari Keterangan:</label><br>
+                <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Contoh: Kopi, Gaji...">
+            </div>
+
+            <div>
+                <label for="category_id">Kategori:</label><br>
+                <select name="category_id" id="category_id">
+                    <option value="">-- Semua Kategori --</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="start_date">Dari Tanggal:</label><br>
+                <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}">
+            </div>
+
+            <div>
+                <label for="end_date">Sampai Tanggal:</label><br>
+                <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}">
+            </div>
+
+            <div>
+                <button type="submit">Cari / Filter</button>
+                <a href="{{ route('transactions.index') }}" style="margin-left: 5px; text-decoration: none; color: #555;">[Reset]</a>
+            </div>
+        </div>
+    </form>
+
     <a href="{{ route('transactions.create') }}">+ Tambah Transaksi</a>
 
     <table border="1" cellpadding="8" cellspacing="0" style="margin-top: 15px; width: 100%;">
