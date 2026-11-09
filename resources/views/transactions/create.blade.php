@@ -1,63 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Tambah Transaksi Baru</title>
-</head>
-<body>
-    <h1>Tambah Transaksi Baru</h1>
+<x-layouts.app>
+    <x-slot:title>Tambah Transaksi - Personal Finance Tracker</x-slot:title>
 
-    <a href="{{ route('transactions.index') }}">← Kembali ke Daftar Transaksi</a>
-    <br><br>
-
-    {{-- Menampilkan error validasi jika ada input yang salah --}}
-    @if ($errors->any())
-        <div style="color: red; margin-bottom: 15px;">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md border border-gray-100">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h2 class="text-xl font-bold text-gray-800">Tambah Transaksi Baru</h2>
+            <a href="{{ route('transactions.index') }}" class="text-sm text-gray-600 hover:text-gray-900 font-medium">
+                ← Kembali
+            </a>
         </div>
-    @endif
 
-    <form action="{{ route('transactions.store') }}" method="POST">
-        @csrf
+        {{-- Penanganan Pesan Error Validasi --}}
+        @if ($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 text-sm">
+                <ul class="list-disc list-inside space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-        <div>
-            <label for="category_id">Kategori:</label><br>
-            <select name="category_id" id="category_id" required>
-                <option value="">-- Pilih Kategori --</option>
-                @foreach ($categories as $category)
-                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                        {{ $category->name }} ({{ strtoupper($category->type) }})
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <br>
+        <form action="{{ route('transactions.store') }}" method="POST" class="space-y-4">
+            @csrf
 
-        <div>
-            <label for="amount">Nominal (Rp):</label><br>
-            <input type="number" name="amount" id="amount" value="{{ old('amount') }}" placeholder="Contoh: 50000" required>
-        </div>
-        <br>
+            {{-- Pilihan Kategori --}}
+            <div>
+                <label for="category_id" class="block text-sm font-semibold text-gray-700 mb-1">Kategori</label>
+                <select name="category_id" id="category_id" required 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <option value="">-- Pilih Kategori --</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }} ({{ strtoupper($category->type) }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        <div>
-            <label for="date">Tanggal:</label><br>
-            <input type="date" name="date" id="date" value="{{ old('date', date('Y-m-d')) }}" required>
-        </div>
-        <br>
+            {{-- Nominal --}}
+            <div>
+                <label for="amount" class="block text-sm font-semibold text-gray-700 mb-1">Nominal (Rp)</label>
+                <input type="number" name="amount" id="amount" value="{{ old('amount') }}" placeholder="Contoh: 50000" min="1" required 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
 
-        <div>
-            <label for="description">Keterangan (Opsional):</label><br>
-            <textarea name="description" id="description" rows="3">{{ old('description') }}</textarea>
-        </div>
-        <br>
+            {{-- Tanggal --}}
+            <div>
+                <label for="date" class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Transaksi</label>
+                <input type="date" name="date" id="date" value="{{ old('date', date('Y-m-d')) }}" required 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
 
-        <button type="submit">Simpan Transaksi</button>
-    </form>
-</body>
-</html>
+            {{-- Keterangan / Deskripsi --}}
+            <div>
+                <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Keterangan (Opsional)</label>
+                <textarea name="description" id="description" rows="3" placeholder="Contoh: Makan siang nasi padang" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">{{ old('description') }}</textarea>
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3">
+                <a href="{{ route('transactions.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-md text-sm transition">
+                    Batal
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-sm shadow transition">
+                    Simpan Transaksi
+                </button>
+            </div>
+        </form>
+    </div>
+</x-layouts.app>
